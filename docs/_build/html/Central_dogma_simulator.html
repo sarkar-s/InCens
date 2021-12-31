@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Central dogma simulator &#8212; InCens 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Computation of protein-level information gain curves" href="C-vs-T-with_finite-sampling_correction.html" />
+    <link rel="prev" title="Computation of ideal channel capacity" href="Computation_of_ideal_channel_capacity.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="C-vs-T-with_finite-sampling_correction.html" title="Computation of protein-level information gain curves"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Computation_of_ideal_channel_capacity.html" title="Computation of ideal channel capacity"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">InCens 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Central dogma simulator</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="central-dogma-simulator">
+<h1>Central dogma simulator<a class="headerlink" href="#central-dogma-simulator" title="Permalink to this headline">¶</a></h1>
+<p>Computes protein expression level (or protein copy number) for a generic
+central dogma reaction system for a set of integration times
+<img class="math" src="_images/math/ca7cf9cc76cfebf505a2fda2827482f6981b52a6.png" alt="T\equiv k_{d,m}/k_{d,g}"/>. The transcript rate constant
+(<img class="math" src="_images/math/6e355ded6b3268bf01cad51f6dbf03309abf326a.png" alt="k_m"/>), transcript decay rate constant (<img class="math" src="_images/math/ddc6170a47a5a04d4907a9c26a7acf69fe57767b.png" alt="k_{d,m}"/>), and the
+translation power (<img class="math" src="_images/math/a40a23d051d29d0e90846903ee729d5236029f84.png" alt="k_g/k_{d,g}"/>) are fixed for all simulations.
+While the protein decay rate constant (<img class="math" src="_images/math/7131cbc31f7c2d35d91dbd64b0d4237a4d6a8d92.png" alt="k_{d,g}"/>) changes to cover
+the range of integration time.</p>
+<p>These simulations can take hours, depending on the parameters. Check out
+the script <em>./scripts/CentralDogmaSimulator.py</em> which runs the same code
+from the command line.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<span class="kn">import</span> <span class="nn">scripts.kMC</span> <span class="k">as</span> <span class="nn">kMC</span>
+
+<span class="kn">from</span> <span class="nn">scripts.simulation_data</span> <span class="kn">import</span> <span class="n">simulation_data</span>
+</pre></div>
+</div>
+<p>Select the dataset for Gillespie simulation and the number of samples to
+obtain from Gillespie simulations. The central dogma rate constants, the
+number of input levels, and the sampling interval are already specified
+in the <em>simulation_data</em>.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">selected_data</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_directory</span> <span class="o">=</span> <span class="s1">&#39;./simulation_results/&#39;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">data_directory</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">data_directory</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">data_directory</span><span class="p">)</span>
+
+<span class="n">expression_directory</span> <span class="o">=</span> <span class="n">selected_data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_samples&#39;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">expression_directory</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">expression_directory</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">expression_directory</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Select the frequency parameter, <img class="math" src="_images/math/f0d949c29370cd898ed70f8f32a09349764a1ebb.png" alt="alpha"/>, or the rate at which the
+operator state switches between ON (1) and OFF(0), and leakiness
+<img class="math" src="_images/math/470aa65888a2971c9346e573f12b37ea406b8ec9.png" alt="l"/>, or the probability of the operator state being ON in the
+absence of the environmental input. <img class="math" src="_images/math/f0d949c29370cd898ed70f8f32a09349764a1ebb.png" alt="alpha"/> is in the unit of
+<img class="math" src="_images/math/2e53aad2972c2d3451c6f5476b677a4d3c3cdc4c.png" alt="\mathrm{min}^{-1}"/>.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">l</span> <span class="o">=</span> <span class="mf">0.01</span>
+</pre></div>
+</div>
+<p>Read the central dogma rate constants for the selected dataset.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">k_m</span> <span class="o">=</span> <span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;k_m&#39;</span><span class="p">]</span>
+<span class="n">k_dm</span> <span class="o">=</span> <span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;k_dm&#39;</span><span class="p">]</span>
+<span class="n">k_dgs</span> <span class="o">=</span> <span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;k_dg&#39;</span><span class="p">]</span>
+<span class="n">translation_power</span> <span class="o">=</span> <span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;translation power&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Perform Gillespie simulation of the generic central dogma reaction
+system. For each integration time value, Gillespie simulations are
+performed for a set of input values <img class="math" src="_images/math/ed38fa24f1c94891bd312012aab3f6673be3eb83.png" alt="X"/>, and the protein copy
+number sampled from the stochastic trajectory is stored as the output,
+which is lated used to compute the protein-level channel capacity,
+<img class="math" src="_images/math/1e30b050e30e8711e39a534d07508a73e9aca34f.png" alt="c(X;g)"/>.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">k_dg_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">k_dgs</span><span class="p">)):</span>
+    <span class="n">k_dg</span> <span class="o">=</span> <span class="n">k_dgs</span><span class="p">[</span><span class="n">k_dg_i</span><span class="p">]</span>
+    <span class="n">k_g</span> <span class="o">=</span> <span class="n">translation_power</span><span class="o">*</span><span class="n">k_dg</span>
+
+    <span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">central_dogma_rates</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_m</span>
+    <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_dm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_dm</span>
+    <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_g</span>
+    <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_dg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_dg</span>
+
+    <span class="n">g_samples</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">m_samples</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;input size&#39;</span><span class="p">][</span><span class="n">k_dg_i</span><span class="p">]))</span>
+
+    <span class="n">g_sample_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">dissipation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+
+    <span class="n">t_sample</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">simulation_data</span><span class="p">[</span><span class="n">selected_data</span><span class="p">][</span><span class="s1">&#39;sample interval&#39;</span><span class="p">][</span><span class="n">k_dg_i</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">event_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">last_sample_event</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Transcription on or off</span>
+        <span class="n">k_on</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">l</span><span class="p">)</span><span class="o">*</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">l</span><span class="p">)</span>
+        <span class="n">k_off</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">l</span><span class="p">)</span>
+
+        <span class="c1"># Initial transcript count</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">k_m</span><span class="o">/</span><span class="n">k_dm</span><span class="p">)</span><span class="o">*</span><span class="n">k_on</span><span class="o">/</span><span class="p">(</span><span class="n">k_on</span> <span class="o">+</span> <span class="n">k_off</span><span class="p">))</span>
+
+        <span class="n">m_samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">]</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">k_g</span><span class="o">/</span><span class="n">k_dg</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">k_m</span><span class="o">/</span><span class="n">k_dm</span><span class="p">)</span><span class="o">*</span><span class="n">k_on</span><span class="o">/</span><span class="p">(</span><span class="n">k_on</span> <span class="o">+</span> <span class="n">k_off</span><span class="p">))</span>
+
+        <span class="n">g_samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="p">]</span>
+        <span class="n">g_sample_array</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span>
+        <span class="n">g_sample_array</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+
+        <span class="n">current_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_on</span>
+        <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_off</span>
+
+        <span class="n">propensities</span> <span class="o">=</span> <span class="n">kMC</span><span class="o">.</span><span class="n">compute_propensities</span><span class="p">(</span><span class="n">central_dogma_rates</span><span class="p">,</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="n">next_sample_time</span> <span class="o">=</span> <span class="n">t_sample</span>
+
+        <span class="n">dissipation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">while</span> <span class="n">samples</span><span class="o">&lt;</span><span class="n">n_samples</span><span class="p">:</span>
+            <span class="n">propensities</span> <span class="o">=</span> <span class="n">kMC</span><span class="o">.</span><span class="n">compute_propensities</span><span class="p">(</span><span class="n">central_dogma_rates</span><span class="p">,</span><span class="n">state</span><span class="p">)</span>
+
+            <span class="n">event</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">event_prob</span> <span class="o">=</span> <span class="n">kMC</span><span class="o">.</span><span class="n">next_jump_and_event_type</span><span class="p">(</span><span class="n">propensities</span><span class="p">)</span>
+
+            <span class="n">state</span> <span class="o">=</span> <span class="n">kMC</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="n">event</span><span class="p">,</span><span class="n">state</span><span class="p">)</span>
+
+            <span class="n">rev_prob</span> <span class="o">=</span> <span class="n">kMC</span><span class="o">.</span><span class="n">reverse_event_prob</span><span class="p">(</span><span class="n">event</span><span class="p">,</span><span class="n">state</span><span class="p">,</span><span class="n">central_dogma_rates</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">event_prob</span><span class="o">&gt;</span><span class="mf">0.0</span> <span class="ow">and</span> <span class="n">rev_prob</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">dissipation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">event_prob</span><span class="o">/</span><span class="n">rev_prob</span><span class="p">)</span>
+
+            <span class="n">current_time</span> <span class="o">+=</span> <span class="n">dt</span>
+            <span class="n">event_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">current_time</span><span class="o">&gt;=</span><span class="n">next_sample_time</span><span class="p">:</span>
+                <span class="n">m_samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">])</span>
+                <span class="n">g_samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">])</span>
+
+                <span class="n">next_sample_time</span> <span class="o">=</span> <span class="n">current_time</span> <span class="o">+</span> <span class="n">t_sample</span> <span class="o">-</span> <span class="p">(</span><span class="n">current_time</span> <span class="o">-</span> <span class="n">next_sample_time</span><span class="p">)</span>
+
+                <span class="n">g_sample_array</span><span class="p">[</span><span class="n">samples</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+
+                <span class="n">samples</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">last_sample_event</span> <span class="o">=</span> <span class="n">event_counter</span>
+
+        <span class="n">dissipation</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">current_time</span>
+
+        <span class="c1">#print(X[i],&#39; is completed: &#39;,current_time,event_counter)</span>
+
+    <span class="n">Tvalue</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k_dm</span><span class="o">/</span><span class="n">k_dg</span><span class="p">))</span>
+
+    <span class="n">tfile</span> <span class="o">=</span> <span class="s1">&#39;T&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Tvalue</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.csv&#39;</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">tfile</span><span class="p">,</span><span class="n">g_sample_array</span><span class="p">,</span><span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Gillespie simulations for T=&#39;</span><span class="p">,</span><span class="n">Tvalue</span><span class="p">,</span><span class="s1">&#39;completed.&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">1.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">2.5</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">5.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">10.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">25.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">50.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">100.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">250.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">500.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">1000.0</span> <span class="n">completed</span><span class="o">.</span>
+<span class="n">Gillespie</span> <span class="n">simulations</span> <span class="k">for</span> <span class="n">T</span><span class="o">=</span> <span class="mf">2500.0</span> <span class="n">completed</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Computation_of_ideal_channel_capacity.html"
+                        title="previous chapter">Computation of ideal channel capacity</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="C-vs-T-with_finite-sampling_correction.html"
+                        title="next chapter">Computation of protein-level information gain curves</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Central_dogma_simulator.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="C-vs-T-with_finite-sampling_correction.html" title="Computation of protein-level information gain curves"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Computation_of_ideal_channel_capacity.html" title="Computation of ideal channel capacity"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">InCens 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Central dogma simulator</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Swarnavo Sarkar.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.1.
+    </div>
+  </body>
+</html>

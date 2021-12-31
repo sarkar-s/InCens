@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats as st
 import math
 import random as rand
-from BA_C import BA
+import BA_C as bao
 from optparse import OptionParser
 
 from simulation_data import simulation_data
@@ -39,9 +39,6 @@ k_dm = simulation_data[selected_data]['k_dm']
 k_dgs = simulation_data[selected_data]['k_dg']
 translation_power = simulation_data[selected_data]['translation power']
 all_cs = np.zeros(shape=(len(k_dgs),2))
-
-# Blahut-Arimoto algorithm to compute channel capacity
-bao = BA()
 
 for k_dg_i in range(0,len(k_dgs)):
     k_dg = k_dgs[k_dg_i]
@@ -117,8 +114,7 @@ for k_dg_i in range(0,len(k_dgs)):
 
         g_pdfs[i,:] = l_pdf/np.sum(l_pdf)
 
-    bao.set_response(g_pdfs)
-    c_g, e, p = bao.get_CC()
+    c_g, e, p = bao.get_CC(g_pdfs)
 
     all_cs[k_dg_i,1] = c_g
 

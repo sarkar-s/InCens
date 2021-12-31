@@ -1,61 +1,75 @@
-# Run gel modeling code
+"""
+Computes channel capacity using the Blahut-Arimoto algorithm
+"""
 import sys
-from optparse import OptionParser
 import numpy as np
 import math
 
-class BA(object):
-    def __init__(self):
-        pass
+def get_CC(_response):
+    r"""
+    Computes channel capacity using the Blahut-Arimoto algorithm.
 
-    def set_response(self,_response):
-        self.response_a = _response
+    Parameters
+    ----------
+    _response: numpy.array
+        2D numpy array, with number of rows as the number of input levels for the channel, and the number of columns is equal
+        the number of output levels. This array is the transition matrix for the information channel.
 
-    def get_CC(self):
-        response = self.response_a
+    Returns
+    -------
+    C: float
+        Channel capacity of the information channel in bits.
 
-        rows, cols = response.shape[0], response.shape[1]
+    err: float
+        Error value at which the iterative Blahut-Arimoto algorithm terminates.
 
-        # Assume uniform distribution as initial condition
-        probs = np.ones(shape=(1,rows))/float(rows)
+    prob: numpy.array
+        1D numpy.array with the optimal input distribution that achieves the channel capacity for the information channel.
+        The length of this array is equal to the number of rows in _response.
+    """
 
-        # Tolerance for convergence
-        errtol = 1e-3
+    response = _response
 
-        # Initial value for error to start the iterative loop
-        err = 1
-        steps = 0
+    rows, cols = response.shape[0], response.shape[1]
 
-        while err>errtol:
-            c = np.zeros(shape=(rows,))
+    # Assume uniform distribution as initial condition
+    probs = np.ones(shape=(1,rows))/float(rows)
 
-            v1 = np.matmul(probs,response)[0,:]
+    # Tolerance for convergence
+    errtol = 1e-3
 
-            for j in range(0,rows):
-                for k in range(0,cols):
-                    if response[j,k]>0.0:
-                        c[j] += response[j,k]*math.log(response[j,k]/v1[k])
+    # Initial value for error to start the iterative loop
+    err = 1
+    steps = 0
 
-                c[j] = math.exp(c[j])
+    while err>errtol:
+        c = np.zeros(shape=(rows,))
 
-            mean_c = np.dot(probs,c)[0]
+        v1 = np.matmul(probs,response)[0,:]
 
-            I_L = math.log(mean_c)
-            I_U = math.log(np.max(c))
+        for j in range(0,rows):
+            for k in range(0,cols):
+                if response[j,k]>0.0:
+                    c[j] += response[j,k]*math.log(response[j,k]/v1[k])
 
-            err = abs(I_U - I_L)
+            c[j] = math.exp(c[j])
 
-            err *= 1.0/math.log(2)
+        mean_c = np.dot(probs,c)[0]
 
-            if err>errtol:
-                probs[0,:] = np.multiply(probs[0,:],c)/mean_c
-                #for j in range(0,rows):
-                #    probs[0,j] *= c[j]/mean_c
-            else:
-                C = I_L
+        I_L = math.log(mean_c)
+        I_U = math.log(np.max(c))
 
-            steps += 1
+        err = abs(I_U - I_L)
 
-        C *= 1.0/math.log(2)
+        err *= 1.0/math.log(2)
 
-        return C, err, probs[0]
+        if err>errtol:
+            probs[0,:] = np.multiply(probs[0,:],c)/mean_c
+        else:
+            C = I_L
+
+        steps += 1
+
+    C *= 1.0/math.log(2)
+
+    return C, err, probs[0]

@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>BA_C &#8212; InCens 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="kMC" href="kMC.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kMC.html" title="kMC"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">InCens 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BA_C</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-scripts.BA_C">
+<span id="ba-c"></span><h1>BA_C<a class="headerlink" href="#module-scripts.BA_C" title="Permalink to this headline">¶</a></h1>
+<p>Computes channel capacity using the Blahut-Arimoto algorithm</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="scripts.BA_C.get_CC">
+<span class="sig-prename descclassname"><span class="pre">scripts.BA_C.</span></span><span class="sig-name descname"><span class="pre">get_CC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_response</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scripts/BA_C.html#get_CC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scripts.BA_C.get_CC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes channel capacity using the Blahut-Arimoto algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_response</strong> (<em>numpy.array</em>) – 2D numpy array, with number of rows as the number of input levels for the channel, and the number of columns is equal
+the number of output levels. This array is the transition matrix for the information channel.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>C</strong> (<em>float</em>) – Channel capacity of the information channel in bits.</p></li>
+<li><p><strong>err</strong> (<em>float</em>) – Error value at which the iterative Blahut-Arimoto algorithm terminates.</p></li>
+<li><p><strong>prob</strong> (<em>numpy.array</em>) – 1D numpy.array with the optimal input distribution that achieves the channel capacity for the information channel.
+The length of this array is equal to the number of rows in _response.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kMC.html"
+                        title="previous chapter">kMC</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/BA_C.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kMC.html" title="kMC"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">InCens 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BA_C</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Swarnavo Sarkar.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.1.
+    </div>
+  </body>
+</html>

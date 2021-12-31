@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""
+Stochastic simulator for central dogma reaction system.
+"""
 
 import os,sys
 import numpy as np
@@ -8,9 +9,20 @@ import math
 import random as rand
 from optparse import OptionParser
 
-import kMC as kMC
+#import kMC as kMC
 
 from simulation_data import simulation_data
+
+
+"""
+Receives the central dogma rate constants data name and number of samples to capture from the stochastic protein expression trajectory.
+Both parameters are recieved as command line arguments.
+
+Args:
+    dataname (string): Data identifier within quotes, e.g. "Homo sapiens", which is then read from the simulation_data.py module.
+
+    samples (int): Number of protein expression values to sample from the stochastic expression trajectory.
+"""
 
 parser = OptionParser()
 parser.add_option("-d","--data",dest="dataname",help="data field (in quotes) containing the simulation parameters")
@@ -151,7 +163,3 @@ for k_dg_i in range(0,len(k_dgs)):
     tfile = 'T'+str(Tvalue).replace('.','_')+'.csv'
 
     np.savetxt(tfile,g_sample_array,delimiter=',')
-
-    #dissfile = 'sigma'+str(k_dm/k_dg).replace('.','_')+'.csv'
-
-    #np.savetxt(expression_directory+'/'+dissfile,dissipation,delimiter=',')
