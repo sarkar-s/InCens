@@ -112,7 +112,7 @@ escherichia coli, Msystems 6, e01296
 
     outstring = 'Coli,'+str(np.median(Ts))+','+str(np.var(Ts))+','+str(p95)+','+str(p5)
 
-    print(outstring,file=open('all-species_decay.csv','a'))
+    print(outstring,file=open('all-species_T.csv','a'))
 
 
 
@@ -193,7 +193,7 @@ Academy of Sciences 103, 13004
 
     outstring = 'Yeast,'+str(np.median(Ts))+','+str(np.var(Ts))+','+str(p95)+','+str(p5)
 
-    print(outstring,file=open('all-species_decay.csv','a'))
+    print(outstring,file=open('all-species_T.csv','a'))
 
 
 
@@ -259,7 +259,7 @@ expression control, Nature 473, 337
 
     outstring = 'Mouse,'+str(np.median(Ts))+','+str(np.var(Ts))+','+str(p95)+','+str(p5)
 
-    print(outstring,file=open('all-species_decay.csv','a'))
+    print(outstring,file=open('all-species_T.csv','a'))
 
 
 
@@ -343,7 +343,7 @@ turnover, Journal of proteome research 10, 5275
 
     outstring = 'Sapiens,'+str(np.median(Ts))+','+str(np.var(Ts))+','+str(p95)+','+str(p5)
 
-    print(outstring,file=open('all-species_decay.csv','a'))
+    print(outstring,file=open('all-species_T.csv','a'))
 
 
 
