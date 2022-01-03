@@ -1,7 +1,7 @@
 # InCens
 Information transfer in Central Dogma systems
 
-This package contains python3 scripts and jupyter notebooks to compute the ideal and the protein-level channel capacity for central dogma reaction networks. 
+This package contains python3 scripts and jupyter notebooks to compute the ideal and the protein-level channel capacity for central dogma reaction networks. The documentation is available at, https://incens.readthedocs.io/en/latest/.
 
 Notebook for computing the ideal channel capacity is, Computation_of_ideal_channel_capacity.ipynb.
 
