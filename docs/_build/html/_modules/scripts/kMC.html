@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scripts.kMC &#8212; InCens 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for scripts.kMC</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for kinetic Monte Carlo simulation (Gillespie algorithm)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<div class="viewcode-block" id="compute_propensities"><a class="viewcode-back" href="../../kMC.html#scripts.kMC.compute_propensities">[docs]</a><span class="k">def</span> <span class="nf">compute_propensities</span><span class="p">(</span><span class="n">central_dogma_rates</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Determines the propensities of the central dogma reaction events as a function of the central dogma system state.</span>
+<span class="sd">    The states is defined using :math:`O`- operator state, :math:&#39;m&#39;- transcript count, and :math:`g` protein copy number. The propensities</span>
+<span class="sd">    of the following events are computed: operator switch from Off to On, operator switch from On to Off, transcription,</span>
+<span class="sd">    transcript decay, translation, and protein decay.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    central_dogma_rates: dict</span>
+<span class="sd">        Dictionary containing the rate constants, :math:`k_{on},k_{off},k_m,k_{dm},k_g,` and :math:`k_{dg}`.</span>
+
+<span class="sd">    state: dict</span>
+<span class="sd">        Dictionary containing the operator state value, the transcript count, and the protein count.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    propensities: dict</span>
+<span class="sd">        Propensities of all the central dogma reactions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">propensities</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_on&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span>
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_off&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span>
+
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_m&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span>
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;dm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_dm&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span>
+
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_g&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span>
+    <span class="n">propensities</span><span class="p">[</span><span class="s1">&#39;dg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">central_dogma_rates</span><span class="p">[</span><span class="s1">&#39;k_dg&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">propensities</span></div>
+
+<div class="viewcode-block" id="next_jump_and_event_type"><a class="viewcode-back" href="../../kMC.html#scripts.kMC.next_jump_and_event_type">[docs]</a><span class="k">def</span> <span class="nf">next_jump_and_event_type</span><span class="p">(</span><span class="n">propensities</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determines the time interval till next reaction using the total propensity of all the reaction events and the reaction event.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    propensities: dict</span>
+<span class="sd">        Propensities all the reactions in the model system.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    event_type: string</span>
+<span class="sd">        Name of the reaction event that will occur in the next step of stochastic simulation.</span>
+
+<span class="sd">    dt: float</span>
+<span class="sd">        Time interval to the next reaction event.</span>
+
+<span class="sd">    event_prob: float</span>
+<span class="sd">        Probability of occurence of the selected reaction event.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">total_wt</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">propensities</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="n">xi</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">low_wt</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">propensities</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">xi</span><span class="o">&lt;=</span><span class="n">low_wt</span><span class="o">+</span><span class="p">(</span><span class="n">propensities</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span><span class="p">)</span> <span class="ow">and</span> <span class="n">xi</span><span class="o">&gt;</span><span class="n">low_wt</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">low_wt</span> <span class="o">+=</span> <span class="n">propensities</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+
+    <span class="n">xi</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">1e-8</span><span class="p">,</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">dt</span> <span class="o">=</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span><span class="o">/</span><span class="n">total_wt</span>
+
+    <span class="n">event_prob</span> <span class="o">=</span> <span class="n">propensities</span><span class="p">[</span><span class="n">event</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+
+    <span class="k">return</span> <span class="n">event</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">event_prob</span></div>
+
+<div class="viewcode-block" id="update_state"><a class="viewcode-back" href="../../kMC.html#scripts.kMC.update_state">[docs]</a><span class="k">def</span> <span class="nf">update_state</span><span class="p">(</span><span class="n">event</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Updates the state of the central dogma reaction system based on the selected reaction event.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    event: string</span>
+<span class="sd">        Propensities all the reactions in the model system.</span>
+
+<span class="sd">    state: dict</span>
+<span class="sd">        Dictionary containing the operator state value, and the transcript and protein counts.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    state: dict</span>
+<span class="sd">        Dictionary containing the updated operator state value, and the transcript and protein counts,</span>
+<span class="sd">        based on the selected event.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;O_on&#39;</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;O_off&#39;</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;m&#39;</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;dm&#39;</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;g&#39;</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">state</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="reverse_event_prob"><a class="viewcode-back" href="../../kMC.html#scripts.kMC.reverse_event_prob">[docs]</a><span class="k">def</span> <span class="nf">reverse_event_prob</span><span class="p">(</span><span class="n">event</span><span class="p">,</span><span class="n">state</span><span class="p">,</span><span class="n">central_dogma_rates</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Determines the propbability of the occurence of the reverse of the selected event.</span>
+<span class="sd">    If the event probability of the selected event is :math:`P(S_2|S_1)`, then this function calculates :math:`P(S_1|S_2)`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    event: string</span>
+<span class="sd">        Propensities all the reactions in the model system.</span>
+
+<span class="sd">    state: dict</span>
+<span class="sd">        Dictionary containing the operator state value, and the transcript and protein counts.</span>
+
+<span class="sd">    central_dogma_rates: dict</span>
+<span class="sd">        Dictionary containing the rate constants, :math:`k_{on},k_{off},k_m,k_{dm},k_g,` and :math:`k_{dg}`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    prob: float</span>
+<span class="sd">        Probability of occurence of the reverse of the selected reaction event.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rev_propensities</span> <span class="o">=</span> <span class="n">compute_propensities</span><span class="p">(</span><span class="n">central_dogma_rates</span><span class="p">,</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">total_wt</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">rev_propensities</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+
+    <span class="k">if</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;O_on&#39;</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;O_off&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;O_off&#39;</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;O_on&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;m&#39;</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;dm&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;dm&#39;</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">==</span><span class="s1">&#39;g&#39;</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;dg&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prob</span> <span class="o">=</span> <span class="n">rev_propensities</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">total_wt</span>
+
+    <span class="k">return</span> <span class="n">prob</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">InCens</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Computation_of_ideal_channel_capacity.html">Computation of ideal channel capacity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Central_dogma_simulator.html">Central dogma simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../C-vs-T-with_finite-sampling_correction.html">Computation of protein-level information gain curves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Integration_time_of_species.html">Integration time of species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../kMC.html">kMC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../BA_C.html">BA_C</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Swarnavo Sarkar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
