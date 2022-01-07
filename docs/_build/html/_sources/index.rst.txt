@@ -11,6 +11,10 @@ InCens contains python codes to compute information transfer through central dog
 :Author:
    Swarnavo Sarkar
 
+If you are using any part of this package, please cite: 
+`S. Sarkar and J. Rammohan, Nearly maximal information gain due to time integration in central dogma reactions, bioRxiv (2022) <https://doi.org/10.1101/2022.01.02.474710>`_
+
+
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
