@@ -196,13 +196,16 @@ of success</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">g_max</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.99</span><span class="p">,</span><span class="n">r_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span><span class="p">)</span>
 
-        <span class="n">bin_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="n">g_max</span> <span class="o">-</span> <span class="n">g_min</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">bin_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="n">g_max</span> <span class="o">-</span> <span class="n">g_min</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
         <span class="n">g_bin_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">g_min</span><span class="p">,</span><span class="n">g_max</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">bin_size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">g_locs_i</span> <span class="o">=</span> <span class="n">g_bin_edges</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="n">g_locs_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">g_bin_edges</span><span class="p">])</span>
+
         <span class="n">g_pdfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">r_params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">g_locs_i</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">r_params</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+
             <span class="k">if</span> <span class="n">r_params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="mf">0.0</span><span class="p">:</span>
                 <span class="n">p</span> <span class="o">=</span> <span class="n">r_params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">r</span> <span class="o">=</span> <span class="n">r_params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">t</span>
@@ -222,9 +225,6 @@ of success</p>
 
         <span class="n">all_cs</span><span class="p">[</span><span class="n">it</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
         <span class="n">all_cs</span><span class="p">[</span><span class="n">it</span><span class="p">,</span><span class="n">rr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_g</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.7/site-packages/ipykernel_launcher.py:18: DeprecationWarning: object of type &lt;class &#39;numpy.float64&#39;&gt; cannot be safely interpreted as an integer.
 </pre></div>
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>

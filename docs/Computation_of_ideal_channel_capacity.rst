@@ -113,17 +113,20 @@ of success
             else:
                 g_max = st.poisson.ppf(0.99,r_params[-1,0]*t)
             
-            bin_size = min(200,g_max - g_min + 1)
+            bin_size = int(min(100,g_max - g_min + 1))
         
             g_bin_edges = np.linspace(g_min,g_max+1,bin_size+1)
-            g_locs_i = g_bin_edges.astype(int)
+            
+            g_locs_i = np.array([int(g) for g in g_bin_edges])
+            
             g_pdfs = np.zeros(shape=(r_params.shape[0],g_locs_i.shape[0]))
-    
+            
             for i in range(0,r_params.shape[0]):
+                
                 if r_params[i,1]>0.0:
                     p = r_params[i,1]
                     r = r_params[i,0]*t
-    
+                    
                     l_cdf = st.nbinom.cdf(g_locs_i,r,1-p,0)
                 else:
                     r = r_params[i,0]*t
@@ -139,12 +142,6 @@ of success
     
             all_cs[it,0] = t
             all_cs[it,rr+1] = c_g
-
-
-.. parsed-literal::
-
-    /usr/local/lib/python3.7/site-packages/ipykernel_launcher.py:18: DeprecationWarning: object of type <class 'numpy.float64'> cannot be safely interpreted as an integer.
-
 
 .. code:: ipython3
 
