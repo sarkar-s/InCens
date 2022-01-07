@@ -6,7 +6,7 @@ import math
 import random as rand
 
 def compute_propensities(central_dogma_rates,state):
-    r"""Determines the propensities of the central dogma reaction events as a function of the central dogma system state.
+    """Determines the propensities of the central dogma reaction events as a function of the central dogma system state.
     The states is defined using :math:`O`- operator state, :math:'m'- transcript count, and :math:`g` protein copy number. The propensities
     of the following events are computed: operator switch from Off to On, operator switch from On to Off, transcription,
     transcript decay, translation, and protein decay.
@@ -39,7 +39,7 @@ def compute_propensities(central_dogma_rates,state):
     return propensities
 
 def next_jump_and_event_type(propensities):
-    r"""
+    """
     Determines the time interval till next reaction using the total propensity of all the reaction events and the reaction event.
 
     Parameters
@@ -81,7 +81,7 @@ def next_jump_and_event_type(propensities):
     return event, dt, event_prob
 
 def update_state(event,state):
-    r"""Updates the state of the central dogma reaction system based on the selected reaction event.
+    """Updates the state of the central dogma reaction system based on the selected reaction event.
 
     Parameters
     ----------
@@ -116,7 +116,7 @@ def update_state(event,state):
     return state
 
 def reverse_event_prob(event,state,central_dogma_rates):
-    r"""Determines the propbability of the occurence of the reverse of the selected event.
+    """Determines the propbability of the occurence of the reverse of the selected event.
     If the event probability of the selected event is :math:`P(S_2|S_1)`, then this function calculates :math:`P(S_1|S_2)`.
 
     Parameters
