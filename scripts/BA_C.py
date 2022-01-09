@@ -1,12 +1,13 @@
 """
-Computes channel capacity using the Blahut-Arimoto algorithm
+Computes channel capacity using the Blahut-Arimoto algorithm.
 """
 import sys
 import numpy as np
 import math
 
 def get_CC(_response):
-    r"""
+    r
+    """
     Computes channel capacity using the Blahut-Arimoto algorithm.
 
     Parameters

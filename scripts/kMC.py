@@ -1,5 +1,5 @@
 """
-Functions for kinetic Monte Carlo simulation (Gillespie algorithm)
+Functions for kinetic Monte Carlo simulation (Gillespie algorithm).
 """
 import numpy as np
 import math
