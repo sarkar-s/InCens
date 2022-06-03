@@ -12,3 +12,7 @@ Notebook for plotting the distribution of integration times for the four species
 The transcript and protein half-lives for the four species are in folder ./half-lives.
 
 The central dogma rate constants for the four species are in ./scripts/simulation_data.py.
+
+Please cite the following preprint if you are using this code.
+
+Sarkar, S., & Rammohan, J. (2022). Nearly maximal information gain due to time integration in central dogma reactions. bioRxiv.
