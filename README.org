@@ -16,6 +16,8 @@ InCens contains python3 scripts and jupyter notebooks to compute the ideal and t
    - ~numpy~
    - ~scipy~
 
+* Package content
+
 Notebook for computing the ideal channel capacity is, Computation_of_ideal_channel_capacity.ipynb.
 
 Notebook for performing Gillespie (kinetic Monte Carlo) simulation of central dogma reactions is, Central_dogma_simulator.ipynb.
